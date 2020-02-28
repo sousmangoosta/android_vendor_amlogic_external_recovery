@@ -1827,6 +1827,39 @@ Value* RecoveryBackupExist(const char* name, State* state, const std::vector<std
     }
 }
 
+Value* WipeDdrParameter(const char* name, State* state, const std::vector<std::unique_ptr<Expr>>& argv) {
+    int fd = -1;
+    int len = 0;
+    int ddr_size = 2*1024*1024;
+    const char *ddr_device = "/dev/ddr_parameter";
+
+    fd = open(ddr_device, O_RDWR);
+    if (fd < 0) {
+        fprintf(stderr, "open %s failed (%s)\n", ddr_device, strerror(errno));
+        return StringValue(strdup("0"));
+    }
+
+   char *buf = (char *)malloc(ddr_size);
+   if (buf == NULL) {
+        fprintf(stderr, "malloc buf failed\n");
+        close(fd);
+        return StringValue(strdup("0"));
+   }
+
+   memset(buf, 0, ddr_size );
+
+    len = write(fd, buf, ddr_size);
+    if (len != ddr_size) {
+        printf("write ddr_parameter failed\n");
+    }
+
+    free(buf);
+    fsync(fd);
+    close(fd);
+
+    return StringValue(strdup("0"));
+}
+
 void Register_libinstall_amlogic() {
     RegisterFunction("write_dtb_image", WriteDtbImageFn);
     RegisterFunction("write_bootloader_image", WriteBootloaderImageFn);
@@ -1846,4 +1879,5 @@ void Register_libinstall_amlogic() {
 
     RegisterFunction("delete_file", DeleteFileByName);
     RegisterFunction("recovery_backup_exist", RecoveryBackupExist);
+    RegisterFunction("wipe_ddr_parameter", WipeDdrParameter);
 }
