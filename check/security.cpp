@@ -205,9 +205,8 @@ static int IsBootloaderImageEncrypted(
         const unsigned char *imageBuffer)
 {
     int step0=1;
-    int step1=1;
+    int step1=0;
     int index=0;
-    unsigned char result= 0;
     const unsigned char *pstart = NULL;
     const unsigned char *pImageAddr = imageBuffer;
     const unsigned char *pEncryptedBootloaderInfoBufAddr = NULL;
@@ -254,11 +253,10 @@ static int IsBootloaderImageEncrypted(
 
     pstart = pImageAddr + newbootloaderEncryptInfoOffset1;
     for (index=0;index<16;index++) {
-        result ^= pstart[index];
-    }
-
-    if (result == 0) {
-        step1 = 0;
+        if (pstart[index] != 0) {
+            step1 = 1;
+            break;
+        }
     }
 
     if ((step0 == 1) && (step1 == 1)) {
