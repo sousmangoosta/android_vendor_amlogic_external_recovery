@@ -19,6 +19,7 @@ cc_library_static {
         "system/core/libutils/include",
         "system/core/libziparchive/include",
         "bootable/recovery/bootloader_message/include",
+        "bootable/recovery/recovery_ui/include/recovery_ui",
         "device/khadas/common/recovery",
         "vendor/amlogic/common/external/recovery",
     ],

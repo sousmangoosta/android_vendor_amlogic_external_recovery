@@ -26,6 +26,7 @@ cc_library_static {
         "bootable/recovery/edify/include",
         "bootable/recovery/otautil/include/otautil",
         "bootable/recovery/bootloader_message/include",
+        "bootable/recovery/recovery_ui/include/recovery_ui",
         "system/core/libziparchive/include",
         "system/core/libcutils/include",
         "system/core/libutils/include",

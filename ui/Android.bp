@@ -20,6 +20,7 @@ cc_library_static {
         "system/core/libcutils/include",
         "bootable/recovery/bootloader_message/include",
         "system/core/libutils/include",
+        "bootable/recovery/recovery_ui/include/recovery_ui",
     ],
     cflags: ["-Werror"],
 }
