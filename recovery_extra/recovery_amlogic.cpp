@@ -18,7 +18,7 @@ Description:
 #include <ctype.h>
 #include <fcntl.h>
 #include <fs_mgr.h>
-#include "install.h"
+//#include "install.h"
 #include "ui.h"
 #include <dirent.h>
 #include "bootloader_message/bootloader_message.h"
@@ -30,7 +30,7 @@ extern "C" {
 #include "ubootenv/uboot_env.h"
 }
 
-#define LOGE(...) ui_print("E:" __VA_ARGS__)
+#define LOGE(...) ui->PrintOnScreenOnly("E:" __VA_ARGS__)
 #define LOGW(...) fprintf(stdout, "W:" __VA_ARGS__)
 #define LOGI(...) fprintf(stdout, "I:" __VA_ARGS__)
 
@@ -53,14 +53,14 @@ void setup_cache_mounts() {
 
 
 static int mount_fs_rdonly(char *device_name, Volume *vol, const char *fs_type) {
-    if (!mount(device_name, vol->mount_point, fs_type,
+    if (!mount(device_name, vol->mount_point.c_str(), fs_type,
         MS_NOATIME | MS_NODEV | MS_NODIRATIME | MS_RDONLY, 0)) {
         LOGW("successful to mount %s on %s by read-only\n",
-            device_name, vol->mount_point);
+            device_name, vol->mount_point.c_str());
         return 0;
     } else {
         LOGE("failed to mount %s on %s by read-only (%s)\n",
-            device_name, vol->mount_point, strerror(errno));
+            device_name, vol->mount_point.c_str(), strerror(errno));
     }
 
     return -1;
@@ -71,54 +71,54 @@ int auto_mount_fs(char *device_name, Volume *vol) {
         return -1;
     }
 
-    if (!strcmp(vol->fs_type, "auto")) {
-        if (!mount(device_name, vol->mount_point, "vfat",
+    if (!strcmp(vol->fs_type.c_str(), "auto")) {
+        if (!mount(device_name, vol->mount_point.c_str(), "vfat",
             MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
             goto auto_mounted;
         } else {
-            if (strstr(vol->mount_point, "sdcard")) {
+            if (strstr(vol->mount_point.c_str(), "sdcard")) {
                 LOGW("failed to mount %s on %s (%s).try read-only ...\n",
-                    device_name, vol->mount_point, strerror(errno));
+                    device_name, vol->mount_point.c_str(), strerror(errno));
                 if (!mount_fs_rdonly(device_name, vol, "vfat")) {
                     goto auto_mounted;
                 }
             }
         }
 
-        if (!mount(device_name, vol->mount_point, "ntfs",
+        if (!mount(device_name, vol->mount_point.c_str(), "ntfs",
             MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
             goto auto_mounted;
         } else {
-            if (strstr(vol->mount_point, "sdcard")) {
+            if (strstr(vol->mount_point.c_str(), "sdcard")) {
                 LOGW("failed to mount %s on %s (%s).try read-only ...\n",
-                    device_name, vol->mount_point, strerror(errno));
+                    device_name, vol->mount_point.c_str(), strerror(errno));
                 if (!mount_fs_rdonly(device_name, vol, "ntfs")) {
                     goto auto_mounted;
                 }
             }
         }
 
-        if (!mount(device_name, vol->mount_point, "exfat",
+        if (!mount(device_name, vol->mount_point.c_str(), "exfat",
             MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
             goto auto_mounted;
         } else {
-            if (strstr(vol->mount_point, "sdcard")) {
+            if (strstr(vol->mount_point.c_str(), "sdcard")) {
                 LOGW("failed to mount %s on %s (%s).try read-only ...\n",
-                    device_name, vol->mount_point, strerror(errno));
+                    device_name, vol->mount_point.c_str(), strerror(errno));
                 if (!mount_fs_rdonly(device_name, vol, "exfat")) {
                     goto auto_mounted;
                 }
             }
         }
     } else {
-        if(!mount(device_name, vol->mount_point, vol->fs_type,
+        if(!mount(device_name, vol->mount_point.c_str(), vol->fs_type.c_str(),
             MS_NOATIME | MS_NODEV | MS_NODIRATIME, "")) {
             goto auto_mounted;
         } else {
-            if (strstr(vol->mount_point, "sdcard")) {
+            if (strstr(vol->mount_point.c_str(), "sdcard")) {
                 LOGW("failed to mount %s on %s (%s).try read-only ...\n",
-                    device_name, vol->mount_point, strerror(errno));
-                if (!mount_fs_rdonly(device_name, vol, vol->fs_type)) {
+                    device_name, vol->mount_point.c_str(), strerror(errno));
+                if (!mount_fs_rdonly(device_name, vol, vol->fs_type.c_str())) {
                     goto auto_mounted;
                 }
             }
@@ -136,16 +136,16 @@ int customize_smart_device_mounted(
     int i = 0, j = 0;
     int first_position = 0;
     int second_position = 0;
-    char * tmp = NULL;
+    const char * tmp = NULL;
     char *mounted_device = NULL;
     char device_name[256] = {0};
     char device_boot[256] = {0};
     const char *usb_device = "/dev/block/sd";
     const char *sdcard_device = "/dev/block/mmcblk";
 
-    if (vol->blk_device != NULL) {
+    if (vol->blk_device.c_str() != NULL) {
         int num = 0;
-        const char *blk_device = vol->blk_device;
+        const char *blk_device = vol->blk_device.c_str();
         for (; *blk_device != '\0'; blk_device ++) {
             if (*blk_device == '#') {
                 num ++;
@@ -161,35 +161,35 @@ int customize_smart_device_mounted(
             return 1;   // Don't contain two '#'
         }
 
-        if (access(vol->mount_point, F_OK)) {
-            if (mkdir(vol->mount_point, 0755) == -1) {
-                printf("mkdir %s failed!\n", vol->mount_point);
+        if (access(vol->mount_point.c_str(), F_OK)) {
+            if (mkdir(vol->mount_point.c_str(), 0755) == -1) {
+                printf("mkdir %s failed!\n", vol->mount_point.c_str());
                 return -1;
             }
         }
 
         // find '#' position
-        if (strchr(vol->blk_device, '#')) {
-            tmp = strchr(vol->blk_device, '#');
-            first_position = tmp - vol->blk_device;
+        if (strchr(vol->blk_device.c_str(), '#')) {
+            tmp = strchr(vol->blk_device.c_str(), '#');
+            first_position = tmp - vol->blk_device.c_str();
             if (strlen(tmp+1) > 0 && strchr(tmp+1, '#')) {
                 tmp = strchr(tmp+1, '#');
-                second_position = tmp - vol->blk_device;
+                second_position = tmp - vol->blk_device.c_str();
             }
         }
 
         if (!first_position || !second_position) {
             LOGW("decompose blk_device error(%s) in recovery.fstab\n",
-                vol->blk_device);
+                vol->blk_device.c_str());
             return -1;
         }
 
-        int copy_len = (strlen(vol->blk_device) < sizeof(device_name)) ?
-            strlen(vol->blk_device) : sizeof(device_name);
+        int copy_len = (strlen(vol->blk_device.c_str()) < sizeof(device_name)) ?
+            strlen(vol->blk_device.c_str()) : sizeof(device_name);
 
         for (i = 0; i < NUM_OF_BLKDEVICE_TO_ENUM; i ++) {
             memset(device_name, '\0', sizeof(device_name));
-            strncpy(device_name, vol->blk_device, copy_len);
+            strncpy(device_name, vol->blk_device.c_str(), copy_len);
 
             if (!strncmp(device_name, sdcard_device, strlen(sdcard_device))) {
                 // start from '0' for mmcblk0p#
@@ -246,27 +246,27 @@ mounted:
 
 int smart_device_mounted(Volume *vol) {
     int i = 0, len = 0;
-    char * tmp = NULL;
+    const char * tmp = NULL;
     char device_name[256] = {0};
     char *mounted_device = NULL;
 
-    if (mkdir(vol->mount_point, 0755) == -1) {
-        printf("mkdir %s failed!\n", vol->mount_point);
+    if (mkdir(vol->mount_point.c_str(), 0755) == -1) {
+        printf("mkdir %s failed!\n", vol->mount_point.c_str());
         //return -1;
     }
 
-    if (vol->blk_device != NULL) {
+    if (vol->blk_device.c_str() != NULL) {
         int ret = customize_smart_device_mounted(vol);
         if (ret <= 0) {
             return ret;
         }
     }
 
-    if (vol->blk_device != NULL) {
-        tmp = strchr(vol->blk_device, '#');
-        len = tmp - vol->blk_device;
+    if (vol->blk_device.c_str() != NULL) {
+        tmp = strchr(vol->blk_device.c_str(), '#');
+        len = tmp - vol->blk_device.c_str();
         if (tmp && len < 255) {
-            strncpy(device_name, vol->blk_device, len);
+            strncpy(device_name, vol->blk_device.c_str(), len);
             for (i = 1; i <= NUM_OF_PARTITION_TO_ENUM; i++) {
                 device_name[len] = '0' + i;
                 device_name[len + 1] = '\0';
@@ -296,14 +296,14 @@ int smart_device_mounted(Volume *vol) {
                 }
             }
         } else {
-            LOGW("try mount %s ...\n", vol->blk_device);
+            LOGW("try mount %s ...\n", vol->blk_device.c_str());
 
             //check device name size < buffer size
-            if (strlen(vol->blk_device) > 255) {
-                printf("the device : %s is too long!\n", vol->blk_device);
+            if (strlen(vol->blk_device.c_str()) > 255) {
+                printf("the device : %s is too long!\n", vol->blk_device.c_str());
                 return -1;
             }
-            strncpy(device_name, vol->blk_device, strlen(vol->blk_device));
+            strncpy(device_name, vol->blk_device.c_str(), strlen(vol->blk_device.c_str()));
             if (!access(device_name, F_OK)) {
                 if (!auto_mount_fs(device_name, vol)) {
                     mounted_device = device_name;
@@ -329,23 +329,23 @@ int ensure_path_mounted_extra(Volume *v) {
     Volume* vUsb = volume_for_mount_point("/udisk");
     char tmp[128] = {0};
 
-    if (strcmp(v->fs_type, "ext4") == 0) {
-        if (strstr(v->mount_point, "system")) {
-            if (!mount(v->blk_device, v->mount_point, v->fs_type,
+    if (strcmp(v->fs_type.c_str(), "ext4") == 0) {
+        if (strstr(v->mount_point.c_str(), "system")) {
+            if (!mount(v->blk_device.c_str(), v->mount_point.c_str(), v->fs_type.c_str(),
                  MS_NOATIME | MS_NODEV | MS_NODIRATIME | MS_RDONLY, "")) {
                  return 0;
             }
         } else {
-            if (!mount(v->blk_device, v->mount_point, v->fs_type,
+            if (!mount(v->blk_device.c_str(), v->mount_point.c_str(), v->fs_type.c_str(),
                  MS_NOATIME | MS_NODEV | MS_NODIRATIME, "discard")) {
                  return 0;
             }
         }
-        LOGE("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
+        LOGE("failed to mount %s (%s)\n", v->mount_point.c_str(), strerror(errno));
         return -1;
-    } else if (strcmp(v->fs_type, "vfat") == 0 ||
-               strcmp(v->fs_type, "auto") == 0 ) {
-        if (strstr(v->mount_point, "sdcard") || strstr(v->mount_point, "udisk")) {
+    } else if (strcmp(v->fs_type.c_str(), "vfat") == 0 ||
+               strcmp(v->fs_type.c_str(), "auto") == 0 ) {
+        if (strstr(v->mount_point.c_str(), "sdcard") || strstr(v->mount_point.c_str(), "udisk")) {
             int time_out = 2000000;
             while (time_out) {
                 if (!smart_device_mounted(v)) {
@@ -355,12 +355,12 @@ int ensure_path_mounted_extra(Volume *v) {
                 time_out -= 100000;
             }
         } else {
-            if (!mount(v->blk_device, v->mount_point, v->fs_type,
+            if (!mount(v->blk_device.c_str(), v->mount_point.c_str(), v->fs_type.c_str(),
                 MS_NOATIME | MS_NODEV | MS_NODIRATIME | MS_RDONLY, "")) {
                 return 0;
             }
         }
-        LOGE("failed to mount %s (%s)\n", v->mount_point, strerror(errno));
+        LOGE("failed to mount %s (%s)\n", v->mount_point.c_str(), strerror(errno));
         return -1;
     } else {
         return 2;//not deal
