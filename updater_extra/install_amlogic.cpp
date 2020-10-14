@@ -518,7 +518,7 @@ Value* WriteBootloaderImageFn(const char* name, State* state, const std::vector<
         return nullptr;
     }
 
-    if ((args[0]->type == VAL_STRING || (args[0]->data.size())) == 0) {
+    if ((args[0]->type == Value::Type::STRING || (args[0]->data.size())) == 0) {
         ErrorAbort(state, kArgsParsingFailure, "file argument to %s can't be empty", name);
         return nullptr;
     }
@@ -575,13 +575,9 @@ Value* WriteDtbImageFn(const char* name, State* state, const std::vector<std::un
         return nullptr;
     }
 
-    if (args[0]->type == VAL_INVALID) {
-        return StringValue("");
-    }
-
     fprintf(stderr, "\nstart to write dtb.img to %s...\n", DTB_DEV);
-    if (args[0]->type == VAL_BLOB) {
-        fprintf(stderr, "contents type: VAL_BLOB\ncontents size: %d\n", args[0]->data.size());
+    if (args[0]->type == Value::Type::BLOB) {
+        fprintf(stderr, "contents type: Value::Type::BLOB\ncontents size: %d\n", args[0]->data.size());
         if (!args[0]->data.c_str() || -1 == args[0]->data.size()) {
             fprintf(stderr, "#ERR:BLOb Data extracted FAILED for dtb\n");
             success = false;
