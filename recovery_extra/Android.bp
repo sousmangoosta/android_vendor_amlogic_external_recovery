@@ -1,6 +1,6 @@
 cc_library_static {
     name: "librecovery_amlogic",
-    vendor_available: true,
+    //vendor_available: true,
     //vndk: {
     //    enabled: true,
     //},
@@ -20,9 +20,9 @@ cc_library_static {
         "system/core/libziparchive/include",
         "bootable/recovery/bootloader_message/include",
         "bootable/recovery/recovery_ui/include/recovery_ui",
-        "bootable/recovery/otautil/include/otautil/",
+        "bootable/recovery/otautil/include",
         "device/khadas/common/recovery",
         "vendor/amlogic/common/external/recovery",
     ],
-    cflags: ["-Werror"],
+    cflags: ["-Wall","-Werror"],
 }

@@ -1,6 +1,6 @@
 cc_library_static {
     name: "libamlogic_ui",
-    vendor_available: true,
+    //vendor_available: true,
     //vndk: {
     //    enabled: true,
     //},

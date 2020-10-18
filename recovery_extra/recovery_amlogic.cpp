@@ -34,8 +34,8 @@ extern "C" {
 #define LOGW(...) fprintf(stdout, "W:" __VA_ARGS__)
 #define LOGI(...) fprintf(stdout, "I:" __VA_ARGS__)
 
-static const int MAX_ARGS = 100;
-static const int MAX_ARG_LENGTH = 4096;
+//static const int MAX_ARGS = 100;
+//static const int MAX_ARG_LENGTH = 4096;
 #define NUM_OF_BLKDEVICE_TO_ENUM    3
 #define NUM_OF_PARTITION_TO_ENUM    6
 
@@ -44,7 +44,8 @@ static const char *SDCARD_COMMAND_FILE = "/sdcard/factory_update_param.aml";
 
 void setup_cache_mounts() {
     int ret = 0;
-    ret = ensure_path_mounted("/cache");
+    const std::string& path = "/cache";
+    ret = ensure_path_mounted(path);
     if (ret != 0) {
         format_volume("/cache");
     }
@@ -326,8 +327,8 @@ mounted:
 // -1   mount Faile
 // 2    ignorel
 int ensure_path_mounted_extra(Volume *v) {
-    Volume* vUsb = volume_for_mount_point("/udisk");
-    char tmp[128] = {0};
+    //Volume* vUsb = volume_for_mount_point("/udisk");
+    //char tmp[128] = {0};
 
     if (strcmp(v->fs_type.c_str(), "ext4") == 0) {
         if (strstr(v->mount_point.c_str(), "system")) {

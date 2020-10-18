@@ -12,7 +12,7 @@ Description:
 
 #include "common.h"
 #include "device.h"
-#include "roots.h"
+#include "otautil/roots.h"
 
 #include <android-base/file.h>
 #include <android-base/logging.h>
