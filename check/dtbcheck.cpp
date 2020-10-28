@@ -19,6 +19,7 @@ Description:
 #include <sys/types.h>
 #include <ziparchive/zip_archive.h>
 #include <android-base/properties.h>
+#include <android-base/strings.h>
 #include "dtbcheck.h"
 
 
@@ -543,7 +544,7 @@ GetZipDtbImage(const ZipArchiveHandle za, const char *imageName, int *imageSize)
     int ret = 0;
     unsigned char *paddr = NULL;
 
-    ZipString zip_path(imageName);
+    std::string_view zip_path(imageName);
     ZipEntry entry;
     if (FindEntry(za, zip_path, &entry) != 0) {
       printf("no %s in package!\n", imageName);

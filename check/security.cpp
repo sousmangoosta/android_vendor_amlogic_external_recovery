@@ -20,8 +20,9 @@ Description:
 #include <android-base/properties.h>
 #include <ziparchive/zip_archive.h>
 #include <android-base/logging.h>
+#include <android-base/strings.h>
 
-#include "common.h"
+//#include "common.h"
 #include "cutils/properties.h"
 #include "security.h"
 
@@ -554,7 +555,7 @@ static int GetZipArchiveImage(
         const char *imageName,
         int *imageSize)
 {
-    ZipString zip_path(imageName);
+    std::string_view zip_path(imageName);
     ZipEntry entry;
     if (FindEntry(za, zip_path, &entry) != 0) {
       printf("no %s in package!\n", imageName);
