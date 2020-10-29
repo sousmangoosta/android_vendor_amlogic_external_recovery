@@ -37,16 +37,16 @@ Description:
 #include "cutils/android_reboot.h"
 #include "cutils/properties.h"
 #include "edify/expr.h"
-#include "error_code.h"
+#include "otautil/error_code.h"
 #include "updater/updater.h"
 #include "check/dtbcheck.h"
 #include "ubootenv/uboot_env.h"
 
-#include "roots.h"
+#include "fs_mgr/roots.h"
 #include <bootloader_message/bootloader_message.h>
 #include <fs_mgr.h>
 
-#include "common.h"
+//#include "common.h"
 #include "device.h"
 
 #include "ui.h"
