@@ -39,6 +39,7 @@ Description:
 #include "edify/expr.h"
 #include "otautil/error_code.h"
 #include "updater/updater.h"
+#include "updater/updater_runtime.h"
 #include "check/dtbcheck.h"
 #include "ubootenv/uboot_env.h"
 
@@ -629,7 +630,7 @@ Value* SetBootloaderEnvFn(const char* name, State* state, const std::vector<std:
 Value* OtaZipCheck(const char* name, State* state,
                            const std::vector<std::unique_ptr<Expr>>&argv) {
     int check = 0;
-    ZipArchiveHandle za = static_cast<UpdaterInfo*>(state->cookie)->package_zip;
+    ZipArchiveHandle za = state->updater->GetPackageHandle();
 
     printf("\n-- Secure Check...\n");
 
@@ -799,7 +800,7 @@ Value* BackupEnvPartition(const char* name, State* state,
                            const std::vector<std::unique_ptr<Expr>>&argv) {
     int offset = 0;
     char tmpbuf[32] = {0};
-    ZipArchiveHandle za = static_cast<UpdaterInfo*>(state->cookie)->package_zip;
+    ZipArchiveHandle za = state->updater->GetPackageHandle();
 
     offset = GetEnvPartitionOffset(za);
     if (offset <= 0) {
@@ -1490,7 +1491,7 @@ Value* BackupUpdatePackage(const char* name, State* state,
     }
 
     //check cache partition whether has enough space store update package.
-    backup_cache_flag = get_partition_free_size("/cache", static_cast<UpdaterInfo*>(state->cookie)->package_zip_len);
+    //backup_cache_flag = get_partition_free_size("/cache", static_cast<Updater*>(state->cookie)->package_zip_len);
     printf("update package path: %s\n", path);
 
     //if update_package=@/cache/recovery/block.map
@@ -1511,8 +1512,8 @@ Value* BackupUpdatePackage(const char* name, State* state,
                 strcpy(path, content.c_str());
             }
 
-            printf("%s %s %d", path, offset.c_str(), static_cast<UpdaterInfo*>(state->cookie)->package_zip_len);
-            sprintf(buf, "%s %s %d", path, offset.c_str(), static_cast<UpdaterInfo*>(state->cookie)->package_zip_len);
+            //printf("%s %s %d", path, offset.c_str(), static_cast<Updater*>(state->cookie)->package_zip_len);
+            //sprintf(buf, "%s %s %d", path, offset.c_str(), static_cast<Updater*>(state->cookie)->package_zip_len);
 
             FILE *pf = fopen("/cache/recovery/zipinfo", "w+");
             if (pf == NULL) {
@@ -1539,12 +1540,12 @@ Value* BackupUpdatePackage(const char* name, State* state,
                 return ErrorAbort(state, kLseekFailure, "lseek mmcblk failed!\n");
             }
 
-            size_t len_w = write(fd, static_cast<UpdaterInfo*>(state->cookie)->package_zip_addr,static_cast<UpdaterInfo*>(state->cookie)->package_zip_len);
-            if (len_w != static_cast<UpdaterInfo*>(state->cookie)->package_zip_len) {
+            /*size_t len_w = write(fd, static_cast<Updater*>(state->cookie)->package_zip_addr,static_cast<Updater*>(state->cookie)->package_zip_len);
+            if (len_w != static_cast<Updater*>(state->cookie)->package_zip_len) {
                 printf("write %s failed!\n", partition.c_str());
                 close(fd);
                 return ErrorAbort(state, kFwriteFailure, "write mmcblk failed!\n");
-            }
+            }*/
 
             FILE *fp = NULL;
             fp = fdopen(fd, "r+");
@@ -1565,12 +1566,12 @@ Value* BackupUpdatePackage(const char* name, State* state,
                 return ErrorAbort(state, kFileOpenFailure, "open %s failed!\n", UPDATE_TMP_FILE);
             }
 
-            size_t len_w = write(fd, static_cast<UpdaterInfo*>(state->cookie)->package_zip_addr,static_cast<UpdaterInfo*>(state->cookie)->package_zip_len);
-            if (len_w != static_cast<UpdaterInfo*>(state->cookie)->package_zip_len) {
+            /*size_t len_w = write(fd, static_cast<Updater*>(state->cookie)->package_zip_addr,static_cast<Updater*>(state->cookie)->package_zip_len);
+            if (len_w != static_cast<Updater*>(state->cookie)->package_zip_len) {
                 printf("write %s failed!\n", UPDATE_TMP_FILE);
                 close(fd);
                 return ErrorAbort(state, kFwriteFailure, "write %s failed!\n", UPDATE_TMP_FILE);
-            }
+            }*/
 
             close(fd);
             ret = do_cache_sync();
@@ -1792,13 +1793,13 @@ Value* WriteHdcp22RxFwFn(const char* name, State* state, const std::vector<std::
 
 Value* RecoveryBackupExist(const char* name, State* state, const std::vector<std::unique_ptr<Expr>>& argv) {
 
-    ZipArchiveHandle za = static_cast<UpdaterInfo*>(state->cookie)->package_zip;
-    ZipString zip_string_path(RECOVERY_IMG);
+    ZipArchiveHandle za = state->updater->GetPackageHandle();
+    const std::string& zip_string_path(RECOVERY_IMG);
     ZipEntry entry;
 
     //get recovery.img entry
     if (FindEntry(za, zip_string_path, &entry) != 0) {
-        printf("no %s in package, no need backup.\n", zip_string_path.name);
+        printf("no %s in package, no need backup.\n", zip_string_path.c_str());
         return StringValue(strdup("1"));
     }
 
